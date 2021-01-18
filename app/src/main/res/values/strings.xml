@@ -1,0 +1,53 @@
+<resources>
+    <string name="app_name">Application</string>
+    <string name="sign_up">Đăng ký tài khoản</string>
+    <string name="sign_in">Đăng nhập</string>
+    <string name="account_info">Thông tin tài khoản</string>
+    <string name="phone_number">Số điện thoại</string>
+    <string name="hint_phone_number">Nhập số điện thoại</string>
+    <string name="password">Mật khẩu</string>
+    <string name="password_confirm">Xác nhận lại mật khẩu</string>
+    <string name="personal_info">Thông tin cá nhân</string>
+    <string name="hint_name">Nguyễn Văn A</string>
+    <string name="name">Họ tên</string>
+    <string name="email">Email</string>
+    <string name="hint_dob">abc@company.com</string>
+    <string name="cancel">Hủy</string>
+    <string name="password_not_match">Mật khẩu không khớp</string>
+    <string name="SignUpCompleted">Đăng ký thành công</string>
+    <string name="StartToUse">Bắt đầu sử dụng</string>
+    <string name="SignInCompleted">Đăng nhập thành công</string>
+    <string name="rating_the_driver">Đánh giá tài xế</string>
+    <string name="hint_rating_the_driver">Viết bình luận tại đây (tự chọn)...</string>
+    <string name="not_rate">Không đánh giá</string>
+    <string name="rate">Đánh giá</string>
+    <string name="not_rate_yet_title">Chưa đánh giá</string>
+    <string name="not_rate_yet_message">Bạn chưa đánh giá tài xế!</string>
+    <string name="accept">Đồng ý</string>
+    <string name="rated_title">Đánh giá thành công</string>
+    <string name="rated_message">Bạn đã đánh giá tài xế thành công!</string>
+    <string name="detail_steps">Chi tiết đường đi</string>
+    <string name="cancel_route">Huỷ chuyến</string>
+    <string name="cancel_route_title">Xác nhận huỷ chuyến</string>
+    <string name="cancel_route_message">Bạn có muốn huỷ chuyến đi hiện tại?</string>
+    <string name="successful_cancel_route_title">Huỷ chuyến thành công</string>
+    <string name="successful_cancel_route_message">Bạn đã huỷ chuyến thành công!</string>
+    <string name="title_activity_choose_location">Lựa chọn địa điểm</string>
+    <string name="title_activity_choose_options_route">Lựa chọn chuyến đi</string>
+    <string name="title_activity_match_driver">Ghép nối tài xế</string>
+    <string name="title_type_of_pay">Phương thức thanh toán</string>
+    <string name="title_promotion_code">Mã khuyến mãi</string>
+    <string name="male">Nam</string>
+    <string name="female">Nữ</string>
+    <string name="SALT">SALT</string>
+    <string name="not_null">Không được để trống!</string>
+    <string name="phone_wrong">Số điện thoại không hợp lệ</string>
+    <string name="signup_failed">Đăng ký không thành công</string>
+
+    <string-array name="list_view">
+        <item>0.1</item>
+        <item>0.2</item>
+        <item>0.3</item>
+        <item>0.4</item>
+    </string-array>
+</resources>
