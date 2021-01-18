@@ -8,13 +8,22 @@ import androidx.fragment.app.FragmentActivity;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
 
+import com.directions.route.AbstractRouting;
+import com.directions.route.Route;
+import com.directions.route.RouteException;
+import com.directions.route.Routing;
+import com.directions.route.RoutingListener;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.Status;
@@ -29,37 +38,34 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback,
-        LocationListener,GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        LocationListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener, RoutingListener {
     String TAG = "MapsFragment";
     private GoogleMap mMap;
     GoogleApiClient mGoogleApiClient;
-    EditText editTextStartSearch;
-    EditText editTextDestinationSearch;
-    LatLng[] location;
     LocationRequest mLocationRequest;
     Location mLastLocation;
     Marker mCurrLocationMarker;
+    LatLng mlatLng, destinationLocation;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        editTextStartSearch = findViewById(R.id.startSearch);
-        editTextDestinationSearch = findViewById(R.id.destinationSearch);
-        location = new LatLng[2];
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -87,74 +93,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         Places.initialize(this, getResources().getString(R.string.google_maps_key));
         //set editText non focusable
-        editTextStartSearch.setFocusable(false);
-        editTextDestinationSearch.setFocusable(false);
 
-        editTextStartSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
-
-                // Start the autocomplete intent.
-                Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
-                        .build(MainActivity.this);
-                startActivityForResult(intent, 100);
-            }
-        });
-        editTextDestinationSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.LAT_LNG);
-
-                // Start the autocomplete intent.
-                Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN, fields)
-                        .build(MainActivity.this);
-                startActivityForResult(intent, 200);
-            }
-        });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == 100) {
-            if (resultCode == RESULT_OK) {
-                Place place = Autocomplete.getPlaceFromIntent(data);
-                Log.i(TAG, "Place: " + place.getName() + ", " + place.getLatLng().toString());
-                location[0] = place.getLatLng();
-                editTextStartSearch.setText(place.getName());
-            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
-                // TODO: Handle the error.
-                Status status = Autocomplete.getStatusFromIntent(data);
-                Log.i(TAG, status.getStatusMessage());
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-            return;
-        }
-        if (requestCode == 200) {
-            if (resultCode == RESULT_OK) {
-                Place place = Autocomplete.getPlaceFromIntent(data);
-                Log.i(TAG, "Place: " + place.getName() + ", " + place.getLatLng().toString());
-                location[1] = place.getLatLng();
-                editTextDestinationSearch.setText(place.getName());
-            } else if (resultCode == AutocompleteActivity.RESULT_ERROR) {
-                // TODO: Handle the error.
-                Status status = Autocomplete.getStatusFromIntent(data);
-                Log.i(TAG, status.getStatusMessage());
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-            return;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API).build();
-        mGoogleApiClient.connect();
     }
 
     @Override
@@ -185,6 +124,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         }
         //Place current location marker
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        mlatLng = latLng;
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng);
         markerOptions.title("Current Position");
@@ -205,5 +145,80 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
+    }
+
+    @Override
+    public void onRoutingFailure(RouteException e) {
+        Toast.makeText(getApplicationContext(),"Finding Route failed!"+e.getMessage(), Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onRoutingStart() {
+        Toast.makeText(getApplicationContext(),"Tìm kiếm đường đi!", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onRoutingSuccess(ArrayList<Route> arrayList, int i) {
+        mMap.clear();
+        showRoute(arrayList.get(i),mMap);
+    }
+
+    @Override
+    public void onRoutingCancelled() {
+        Toast.makeText(getApplicationContext(),"Finding Route cancelled!", Toast.LENGTH_LONG).show();
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
+    }
+
+    public void searchLocation(View view) {
+        String Destinationlocation = "Tây Ninh";
+        List<Address> addressList = null;
+
+        if (Destinationlocation != null || !Destinationlocation.equals("")) {
+            Geocoder geocoder = new Geocoder(this);
+            try {
+                addressList = geocoder.getFromLocationName(Destinationlocation, 1);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Address address = addressList.get(0);
+            LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+            destinationLocation = latLng;
+            mMap.addMarker(new MarkerOptions().position(latLng).title(Destinationlocation));
+            mMap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+
+            Routing routing = new Routing.Builder()
+                    .travelMode(AbstractRouting.TravelMode.DRIVING)
+                    .withListener(this)
+                    .alternativeRoutes(false)
+                    .waypoints(mlatLng, destinationLocation)
+                    .key(getResources().getString(R.string.google_maps_key))
+                    .build();
+
+            routing.execute();
+            Toast.makeText(getApplicationContext(),destinationLocation.toString(),Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public void showRoute(Route r, GoogleMap mMap){
+        PolylineOptions polyOptions = new PolylineOptions();
+        polyOptions.color(Color.argb(255,0,0,255));
+        polyOptions.width(7);
+        polyOptions.addAll(r.getPoints());
+        mMap.addPolyline(polyOptions);
+
+        mMap.addMarker(new MarkerOptions().position(mlatLng)
+                .title("start")
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))).showInfoWindow();
+        mMap.addMarker(new MarkerOptions().position(destinationLocation)
+                .title("destination")).showInfoWindow();
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mlatLng,15));
     }
 }

@@ -16,28 +16,11 @@
         android:layout_weight="1"
         tools:context=".MainActivity" />
 
-    <LinearLayout
+    <Button
+        android:id="@+id/button"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:layout_weight="5"
-        android:textAlignment="center"
-        android:paddingBottom="5dp">
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:drawableLeft="@drawable/ic_baseline_search_24"
-            android:drawablePadding="20dp"
-            android:id="@+id/startSearch"
-            android:hint="Địa điểm đón"/>
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:drawableLeft="@drawable/ic_baseline_search_24"
-            android:id="@+id/destinationSearch"
-            android:drawablePadding="20dp"
-            android:hint="Địa điểm đến"/>
-    </LinearLayout>
+        android:layout_weight="10"
+        android:onClick="searchLocation"
+        android:text="Button" />
 </LinearLayout>
